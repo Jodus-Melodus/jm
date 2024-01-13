@@ -1,3 +1,6 @@
+mod program;
+use program::shell::shell;
+
 fn main() {
-    println!("Hello, world!");
+    shell();
 }
