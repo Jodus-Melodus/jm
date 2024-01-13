@@ -1,6 +1,6 @@
 use std::{path::PathBuf, process::exit};
 
-use super::{file_handeling::{create_file, create_directory, get_current_directory, change_directory, clear, print_directory, read_file, readline, write_file, remove_directory, remove_file}, version_control::init};
+use super::{file_handeling::{create_file, create_directory, get_current_directory, change_directory, clear, print_directory, read_file, readline, write_file, remove_directory, remove_file}, version_control::{init, compare_files}};
 
 fn run_command(command_arguments:Vec<&str>, current_path:PathBuf) -> PathBuf {
     let mut new_path = current_path.clone();
@@ -46,6 +46,16 @@ fn run_command(command_arguments:Vec<&str>, current_path:PathBuf) -> PathBuf {
             "echo" => println!("{}", command_arguments[1..].join(" ")),
             "exit" | "quit" => exit(0),
             "init" => init(),
+            "compare" => {
+                if command_arguments.len() == 3 {
+                    let mut path_of_file1 = current_path.clone();
+                    let mut path_of_file2 = current_path.clone();
+                    path_of_file1.push(command_arguments[1]);
+                    path_of_file2.push(command_arguments[2]);
+
+                    println!("{}", compare_files(path_of_file1, path_of_file2).join("\n"));
+                }
+            },
             "help" => {
                 println!("
 cd [path]                           Change the current directory to a specified folder
