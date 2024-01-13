@@ -8,6 +8,22 @@ pub fn get_current_directory() -> PathBuf {
     }
 }
 
+pub fn remove_directory(directory_path:PathBuf) {
+    if let Err(err) = fs::remove_dir_all(directory_path.clone()) {
+        eprintln!("Error deleting directory: {}", err);
+    } else {
+        println!("Removed directory {:?}", directory_path.display());
+    }
+}
+
+pub fn remove_file(file_path:PathBuf) {
+    if let Err(err) = fs::remove_file(file_path.clone()) {
+        eprintln!("Error deleting file: {}", err);
+    } else {
+        println!("Removed file {:?}", file_path.display());
+    }
+}
+
 pub fn create_directory(directory_name:&str) {
     if let Err(err) = fs::create_dir(directory_name) {
         eprintln!("Error creating directory: {}", err);
@@ -136,6 +152,22 @@ fn run_command(command_arguments:Vec<&str>, current_path:PathBuf) -> PathBuf {
                     println!("{:?} Bytes written.", bytes);
                 }
             },
+            "rd" => {
+                if command_arguments.len() == 2 {
+                    let mut directory_path = current_path.clone();
+                    directory_path.push(command_arguments[1]);
+
+                    remove_directory(directory_path);
+                }
+            },
+            "rf" => {
+                if command_arguments.len() == 2 {
+                    let mut file_path = current_path.clone();
+                    file_path.push(command_arguments[1]);
+
+                    remove_file(file_path);
+                }
+            },
             "echo" => println!("{}", command_arguments[1..].join(" ")),
             "exit" | "quit" => exit(0),
             "help" => {
@@ -154,7 +186,9 @@ mf [path]                           Creates a new file
 mkdir [path]                        Creates a new directory
 mkfile [path]                       Creates a new file
 quit                                Exit the console
+rd [path]                           Removes the specified directory
 read [path]                         Read the contents of a file and print to screen
+rf [path]                           Removes the specified file
 write [path] [content]              Write to the end of a file and auto creates if not exist
                 ");
             },
