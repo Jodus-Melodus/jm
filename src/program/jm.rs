@@ -1,4 +1,4 @@
-use std::{path::PathBuf, process::exit, fs};
+use std::{path::PathBuf, process::{exit, Command}, fs};
 use crate::program::file_handeling::write_file;
 use super::file_handeling::{read_file, readline};
 
@@ -29,13 +29,14 @@ impl Jm {
         self.number_width = self.lines.len().to_string().len();
         let num_width = self.number_width;
 
-        println!("--------------------------------------------------------------------------------------------------");
-        println!("| Ln:{} | {} | {} bytes |",
+        println!(" --------------------------------------------------------------------------------------------------");
+        println!(" | Ln:{} | {} | {} bytes | {} ",
             self.cursor+1,
             if self.saved {"Saved"} else {"Unsaved"},
-            self.file_size
+            self.file_size,
+            self.file_path.file_name().unwrap().to_str().unwrap()
         );
-        println!("--------------------------------------------------------------------------------------------------");
+        println!(" --------------------------------------------------------------------------------------------------");
 
         for (i, line) in self.lines.iter().enumerate() {
             if i == self.cursor {
@@ -48,7 +49,7 @@ impl Jm {
 
     pub fn command(mut self) -> Self {
         let num_width = self.number_width;
-        println!("--------------------------------------------------------------------------------------------------");
+        println!(" --------------------------------------------------------------------------------------------------");
         let cmd = readline(&format!(" {:<num_width$}> ", self.cursor+1));
         self.file_size = fs::metadata(self.clone().file_path).unwrap().len();
         
@@ -80,6 +81,22 @@ impl Jm {
                 self.saved = true;
             },
             "goto" => self.cursor = readline("> ").parse::<usize>().unwrap()-1,
+            ":" => {
+                loop {
+                    let cmd = readline("> ");
+                    if cmd == "exit" {
+                        break;
+                    };
+                    if cfg!(windows) {
+                        Command::new("cmd")
+                        .arg("/c")
+                        .arg(cmd)
+                        .status()
+                        .expect("Failed to run command");
+                    };
+                }
+                readline("Enter to continue");
+            },
             "?" => {
                 println!("
 ?       Display this msg
@@ -95,6 +112,7 @@ ca      Clears entire file
 $       Set cursor at beginning of file
 s       Save changes
 goto    Go to specific line
+:       Run a command prompt command
 ");
 readline("Enter to continue");
             },
