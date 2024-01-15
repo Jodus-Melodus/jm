@@ -58,8 +58,15 @@ pub fn get_files_and_directories_of_current_path(current_path:PathBuf) -> Vec<St
 }
 
 pub fn write_file(content: Vec<&str>, path: PathBuf) -> usize {
-    let mut file = OpenOptions::new().create(true).append(true).open(path).expect("Failed to create file");
-    let bytes = file.write(content.join(" ").as_bytes()).expect("Failed to write to file");
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(path.clone())
+        .expect("Failed to create or open file");
+
+    let bytes = file.write(content.join("\n").as_bytes()).expect("Failed to write to file");
+    file.flush().unwrap_or_else(|e| panic!("Failed to flush file {:?}: {}", path, e));
 
     bytes
 }
