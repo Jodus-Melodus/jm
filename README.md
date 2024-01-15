@@ -8,4 +8,4 @@ A console-based text editor.
 
 ## Example
 
-![example]([/example.png](https://github.com/Jodus-Melodus/jm/blob/main/example.png?raw=true)https://github.com/Jodus-Melodus/jm/blob/main/example.png?raw=true)
+![](https://github.com/Jodus-Melodus/jm/blob/main/example.png?raw=true)
