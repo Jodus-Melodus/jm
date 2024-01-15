@@ -1,3 +1,11 @@
 # jm
 
-A terminal & version control package
+A console based text editor.
+
+## Features
+
+- Automatically creates the file if it doesn't exits
+
+## Example
+
+[](/example.png)

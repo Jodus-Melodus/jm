@@ -39,9 +39,9 @@ impl Jm {
 
         for (i, line) in self.lines.iter().enumerate() {
             if i == self.cursor {
-                println!("{:<num_width$}> {}", i, line);
+                println!(" {:<num_width$}> {}", i+1, line);
             } else {
-                println!("{:<num_width$}| {}", i, line);
+                println!(" {:<num_width$}| {}", i+1, line);
             }
         }
     }
@@ -49,7 +49,7 @@ impl Jm {
     pub fn command(mut self) -> Self {
         let num_width = self.number_width;
         println!("--------------------------------------------------------------------------------------------------");
-        let cmd = readline(&format!("{:<num_width$}> ", self.cursor));
+        let cmd = readline(&format!(" {:<num_width$}> ", self.cursor+1));
         self.file_size = fs::metadata(self.clone().file_path).unwrap().len();
         
         match cmd.as_str() {
@@ -58,6 +58,8 @@ impl Jm {
                     exit(0);
                 } else if readline("You have unsaved changes. Do you want to save and exit? (y/n) > ") == "y" {
                     write_file(self.lines.iter().map(|l| l.as_str()).collect::<Vec<&str>>(), self.file_path);
+                    println!("Save successful!");
+                    readline("Enter to exit");
                     exit(0);
                 } else {
                     exit(0);
@@ -70,13 +72,14 @@ impl Jm {
             "md" => self.cursor = (self.cursor+1) % self.lines.len(),
             "dl" => {self.lines.remove(self.cursor);},
             "ca" => self.lines.clear(),
-            "." => self.cursor = self.lines.len(),
+            "." => self.cursor = self.lines.len()-1,
             "$" => self.cursor = 0,
             "s" => {
                 println!("{} bytes written", write_file(self.lines.iter().map(|l| l.as_str()).collect::<Vec<&str>>(), self.clone().file_path));
                 readline("Enter to continue");
                 self.saved = true;
             },
+            "goto" => self.cursor = readline("> ").parse::<usize>().unwrap()-1,
             "?" => {
                 println!("
 ?       Display this msg
@@ -91,9 +94,7 @@ ca      Clears entire file
 .       Set cursor at end of file
 $       Set cursor at beginning of file
 s       Save changes
-
-:       Enter command mode
-/       Search for text
+goto    Go to specific line
 ");
 readline("Enter to continue");
             },
