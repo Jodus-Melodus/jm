@@ -266,19 +266,19 @@ class Program
     static void PrintHelp()
     {
         Console.WriteLine(@"
-    cd          - changes working directory
-    cls/clear   - clears the terminal
-    exit/kill   - exits the terminal
-    find        - searches for the file using DFS
+    cd              - changes working directory
+    cls/clear       - clears the terminal
+    exit/kill/quit  - exits the terminal
+    find            - searches for the file using DFS
         -a : return absolute path
         -r : return relative path
-    findlike    - searches for the string in part of the filename using DFS
+    findlike        - searches for the string in part of the filename using DFS
         -a : return absolute path
         -r : return relative path
-    help        - shows this menu
-    ls/dir      - shows files & folders in current directory
-    tree        - tree view with specified depth
-    !           - run an external command");
+    help            - shows this menu
+    ls/dir          - shows files & folders in current directory
+    tree            - tree view with specified depth
+    !               - run an external command");
     }
 
     private static void Backup(string sourcePath, string destinationPath)
