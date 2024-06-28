@@ -1,4 +1,6 @@
-﻿class Program
+﻿using System.Diagnostics;
+
+class Program
 {
     static void Main()
     {
@@ -70,6 +72,9 @@
                 case "quit":
                     Environment.Exit(0);
                     break;
+                case "!":
+                    HandleExternalCommand(args);
+                    break;
                 case "help":
                     PrintHelp();
                     break;
@@ -78,6 +83,37 @@
                 default:
                     PrintColored("Unknown internal or external command", "red");
                     break;
+            }
+        }
+    }
+
+    private static void HandleExternalCommand(string[] args)
+    {
+        if (args.Length > 0)
+        {
+            Process process = new();
+            process.StartInfo.FileName = "cmd.exe";
+            process.StartInfo.Arguments = $"/C {string.Join(' ', args)}";
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+
+            process.Start();
+
+            string output = process.StandardOutput.ReadToEnd();
+            string error = process.StandardError.ReadToEnd();
+
+            process.WaitForExit();
+
+            if (!string.IsNullOrEmpty(output))
+            {
+                Console.WriteLine(output);
+            }
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                Console.WriteLine(error);
             }
         }
     }
@@ -241,7 +277,8 @@
         -r : return relative path
     help        - shows this menu
     ls/dir      - shows files & folders in current directory
-    tree        - tree view with specified depth");
+    tree        - tree view with specified depth
+    !           - run an external command");
     }
 
     private static void Backup(string sourcePath, string destinationPath)
