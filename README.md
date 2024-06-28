@@ -4,72 +4,98 @@ A simplistic terminal with cool tools.
 
 ## Commands
 
-### cd
+### backup {source} {destination}
 
-Change the current directory to the specified one
+- copies the source dir to the destinatino dir
 
-Parameters:
+### bin2dec {bin}
 
-1. The directory you want to change to
+- converts bin number to dec
 
-### cls/clear
+### oct2dec {oct}
 
-Clears the terminal
+- converts oct number to dec
 
-### exit/kill/quit
+### hex2dec {hex}
 
-Close the current instance of the terminal
+- converts hex number to dec
 
-### find
+### dec2bin {dec}
 
-Searches in the subdirectories for the file using DFS
+- converts dec number to bin
 
-Parameters:
+### dec2oct {dec}
 
-1. Filename to search for
+- converts dec number to oct
 
-Flags:
+### dec2hex {dec}
 
-- -a : return the absolute path
-- -r : return the relative path
+- converts dec number to hex
 
-### findlike
+### rm {file/dir name}
 
-Searches in the subdirectories for part of a filename
+- deletes the specified dir/file
 
-Parameters:
+### del {file/dir name}
 
-1. Part to search for
+- deletes the specified dir/file
 
-Flags:
+### ls
 
-- -a : return the absolute path
-- -r : return the relative path
+- displays the dirs/files in the current dir
+
+### dir
+
+- displays the dirs/files in the current dir
+
+### cwd
+
+- displays the current working directory
+
+### cd {new dir}
+
+- change the current directory to the new specified one
+
+### find {file name}
+
+- searches the subdirectories for a file with the specified name
+
+### findlike {match}
+
+- seraches the subdirectories for a file that matches the specified match
+
+### tree {depth}
+
+- displays the current directory and subdirectories as a tree with a specified depth
+
+### cls
+
+- clears the screen
+
+### clear
+
+- clears the screen
+
+### exit
+
+- terminates the current instance of the terminal
+
+### kill
+
+- terminates the current instance of the terminal
+
+### quit
+
+- terminates the current instance of the terminal
+
+### ! {command}
+
+- run an external command
+
+### read {file name}
+
+- display the contents of a file
 
 ### help
 
-Show the help menu
-
-### dir/ls
-
-List the directories and files in the current directory
-
-### read
-
-Display the contents of a file
-
-Parameters:
-
-1. File path
-
-### tree
-
-Show the tree view of the current directory
-
-Parameters:
-
-1. Tree depth
-
-### !
-
-Run an external command
+- display this menu

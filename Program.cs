@@ -44,6 +44,10 @@ class Program
                 case "dec2hex":
                     HandleDecimalConversion(args, 16);
                     break;
+                case "rm":
+                case "del":
+                    HandleFileAndDirectoryRemoval(args, cwd);
+                    break;
                 case "ls":
                 case "dir":
                     HandleListDirectory(cwd);
@@ -87,6 +91,64 @@ class Program
                     PrintColored("Unknown internal or external command", "red");
                     break;
             }
+        }
+    }
+
+    static void PrintHelp()
+    {
+        Console.WriteLine(@"
+backup {source} {destination}           - copies the source dir to the destinatino dir
+bin2dec {bin}                           - converts bin number to dec
+oct2dec {oct}                           - converts oct number to dec
+hex2dec {hex}                           - converts hex number to dec
+dec2bin {dec}                           - converts dec number to bin
+dec2oct {dec}                           - converts dec number to oct
+dec2hex {dec}                           - converts dec number to hex
+rm {file/dir name}                      - deletes the specified dir/file
+del {file/dir name}                     - deletes the specified dir/file
+ls                                      - displays the dirs/files in the current dir
+dir                                     - displays the dirs/files in the current dir
+cwd                                     - displays the current working directory
+cd {new dir}                            - change the current directory to the new specified one
+find {file name}                        - searches the subdirectories for a file with the specified name
+findlike {match}                        - seraches the subdirectories for a file that matches the specified match
+tree {depth}                            - displays the current directory and subdirectories as a tree with a specified depth
+cls                                     - clears the screen
+clear                                   - clears the screen
+exit                                    - terminates the current instance of the terminal
+kill                                    - terminates the current instance of the terminal
+quit                                    - terminates the current instance of the terminal
+! {command}                             - run an external command
+read {file name}                        - display the contents of a file
+help                                    - display this menu
+    ");
+    }
+
+    private static void HandleFileAndDirectoryRemoval(string[] args, string cwd)
+    {
+        string path = Path.Join(cwd, string.Join(" ", args));
+
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, true);
+                PrintColored($"Removed '{Path.GetFileName(path)}' successfully", "green");
+            }
+            else if (File.Exists(path))
+            {
+                File.Delete(path);
+                PrintColored($"Removed '{Path.GetFileName(path)}' successfully", "green");
+            }
+            else
+            {
+                PrintColored($"'{Path.GetFileName(path)}' does not exist", "red");
+            }
+        }
+        catch (IOException e)
+        {
+            PrintColored($"An error occurred while trying to delete '{Path.GetFileName(path)}'", "red");
+            PrintColored(e.Message, "red");
         }
     }
 
@@ -299,25 +361,6 @@ class Program
     {
         int depth = args.Length > 0 ? int.Parse(args[0]) : 2;
         Console.WriteLine(TreeView(cwd, depth, 0, "", "  "));
-    }
-
-    static void PrintHelp()
-    {
-        Console.WriteLine(@"
-    cd              - changes working directory
-    cls/clear       - clears the terminal
-    exit/kill/quit  - exits the terminal
-    find            - searches for the file using DFS
-        -a : return absolute path
-        -r : return relative path
-    findlike        - searches for the string in part of the filename using DFS
-        -a : return absolute path
-        -r : return relative path
-    help            - shows this menu
-    ls/dir          - shows files & folders in current directory
-    read            - display the contents of the file
-    tree            - tree view with specified depth
-    !               - run an external command");
     }
 
     private static void Backup(string sourcePath, string destinationPath)
