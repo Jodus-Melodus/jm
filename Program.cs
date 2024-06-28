@@ -75,6 +75,9 @@ class Program
                 case "!":
                     HandleExternalCommand(args);
                     break;
+                case "read":
+                    HandleReadFile(args, cwd);
+                    break;
                 case "help":
                     PrintHelp();
                     break;
@@ -84,6 +87,32 @@ class Program
                     PrintColored("Unknown internal or external command", "red");
                     break;
             }
+        }
+    }
+
+    private static string[]? ReadFile(string path)
+    {
+        try
+        {
+            string[] lines = File.ReadAllLines(path);
+            return lines;
+        }
+        catch (IOException e)
+        {
+            PrintColored($"An error occurred while reading '{Path.GetFileName(path)}'", "red");
+            PrintColored(e.Message, "red");
+            return null;
+        }
+    }
+
+    private static void HandleReadFile(string[] args, string cwd)
+    {
+        string path = Path.Join(cwd, string.Join(" ", args));
+        string[]? lines = ReadFile(path);
+
+        if (lines is not null)
+        {
+            Console.WriteLine(string.Join("\n", lines));
         }
     }
 
@@ -286,6 +315,7 @@ class Program
         -r : return relative path
     help            - shows this menu
     ls/dir          - shows files & folders in current directory
+    read            - display the contents of the file
     tree            - tree view with specified depth
     !               - run an external command");
     }

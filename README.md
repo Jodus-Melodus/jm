@@ -54,6 +54,14 @@ Show the help menu
 
 List the directories and files in the current directory
 
+### read
+
+Display the contents of a file
+
+Parameters:
+
+1. File path
+
 ### tree
 
 Show the tree view of the current directory
