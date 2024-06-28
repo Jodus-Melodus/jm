@@ -208,12 +208,21 @@ class Program
         if (args.Length > 0)
         {
             string newDir = args[0] == ".." ? ".." : Path.Combine(cwd, string.Join(" ", args));
-            Directory.SetCurrentDirectory(newDir);
+            if (Directory.Exists(newDir))
+            {
+                Directory.SetCurrentDirectory(newDir);
+            }
+            else
+            {
+                PrintColored("No such directory", "red");
+            }
+
         }
         else
         {
             PrintColored("Expected directory path", "red");
         }
+
     }
 
     static void HandleFind(string[] args, string cwd)
