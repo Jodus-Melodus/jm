@@ -82,6 +82,9 @@ class Program
                 case "read":
                     HandleReadFile(args, cwd);
                     break;
+                case "empty":
+                    HandleEmpty(args, cwd);
+                    break;
                 case "help":
                     PrintHelp();
                     break;
@@ -91,6 +94,21 @@ class Program
                     PrintColored("Unknown internal or external command", "red");
                     break;
             }
+        }
+    }
+
+    private static void HandleEmpty(string[] args, string cwd)
+    {
+        if (args.Length > 0)
+        {
+            string source = Path.Join(cwd, args[0]);
+            CopyDirectoryRecursively(source, cwd, true);
+
+            PrintColored("Finished emptying directory", "green");
+        }
+        else
+        {
+            PrintColored("Expected a directory path", "red");
         }
     }
 
@@ -120,6 +138,7 @@ kill                                    - terminates the current instance of the
 quit                                    - terminates the current instance of the terminal
 ! {command}                             - run an external command
 read {file name}                        - display the contents of a file
+empty {dir name}                        - takes the specified dirs contents and moves them to the directory's parent
 help                                    - display this menu
     ");
     }
@@ -397,7 +416,7 @@ help                                    - display this menu
         }
     }
 
-    private static void CopyDirectoryRecursively(string sourceDirectory, string destinationDirectory)
+    private static void CopyDirectoryRecursively(string sourceDirectory, string destinationDirectory, bool deleteAfterCopy = false)
     {
         Directory.CreateDirectory(destinationDirectory);
 
@@ -407,6 +426,10 @@ help                                    - display this menu
             try
             {
                 File.Copy(file, destFilePath, true);
+                if (deleteAfterCopy)
+                {
+                    File.Delete(file);
+                }
                 Console.WriteLine($"Copied file '{file}' to '{destFilePath}'");
             }
             catch (Exception ex)

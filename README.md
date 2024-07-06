@@ -40,6 +40,10 @@ A simplistic terminal with cool tools.
 
 - deletes the specified dir/file
 
+### empty {dir name}
+
+- takes the specified dirs contents and moves them to the directory's parent
+
 ### ls
 
 - displays the dirs/files in the current dir
