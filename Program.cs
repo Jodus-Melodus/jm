@@ -79,6 +79,12 @@ class Program
                 case "!":
                     HandleExternalCommand(args);
                     break;
+                case "prefix":
+                    HandlePrefix(args, cwd);
+                    break;
+                case "suffix":
+                    HandleSuffix(args, cwd);
+                    break;
                 case "read":
                     HandleReadFile(args, cwd);
                     break;
@@ -94,6 +100,48 @@ class Program
                     PrintColored("Unknown internal or external command", "red");
                     break;
             }
+        }
+    }
+
+    private static void HandleSuffix(string[] args, string cwd)
+    {
+        if (args.Length > 0)
+        {
+            string[] files = Directory.GetFiles(cwd);
+            string suffix = args[0];
+
+            foreach (string file in files)
+            {
+                string oldPath = Path.Join(cwd, Path.GetFileName(file));
+                string newPath = Path.Join(cwd, Path.GetFileNameWithoutExtension(file) + suffix + Path.GetExtension(file));
+                File.Copy(oldPath, newPath);
+                File.Delete(oldPath);
+            }
+        }
+        else
+        {
+            PrintColored("Expected suffix", "red");
+        }
+    }
+
+    private static void HandlePrefix(string[] args, string cwd)
+    {
+        if (args.Length > 0)
+        {
+            string[] files = Directory.GetFiles(cwd);
+            string prefix = args[0];
+
+            foreach (string file in files)
+            {
+                string oldPath = Path.Join(cwd, Path.GetFileName(file));
+                string newPath = Path.Join(cwd, prefix + Path.GetFileName(file));
+                File.Copy(oldPath, newPath);
+                File.Delete(oldPath);
+            }
+        }
+        else
+        {
+            PrintColored("Expected prefix", "red");
         }
     }
 
@@ -139,6 +187,8 @@ quit                                    - terminates the current instance of the
 ! {command}                             - run an external command
 read {file name}                        - display the contents of a file
 empty {dir name}                        - takes the specified dirs contents and moves them to the directory's parent
+suffix {suffix}                         - adds the specified suffix to all the files in the current directory
+prefix {prefix}                         - adds the specified prefix to all the files in the current directory
 help                                    - display this menu
     ");
     }

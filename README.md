@@ -100,6 +100,14 @@ A simplistic terminal with cool tools.
 
 - display the contents of a file
 
+### prefix {prefix}
+
+- adds the specified prefix to all the files in the current directory
+
+## suffix {suffix}
+
+- adds the specified suffix to all the files in the current directory
+
 ### help
 
 - display this menu
