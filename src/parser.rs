@@ -32,7 +32,13 @@ pub fn generate_ast(tokens: Vec<Token>) -> (Node, Vec<String>) {
     let mut errors = Vec::new();
 
     loop {
-        if let Some(Token::Token(token_type, _)) = tokens.peek().cloned() {
+        if let Some(Token::Token {
+            token_type,
+            line,
+            column,
+            ..
+        }) = tokens.peek().cloned()
+        {
             match token_type {
                 TokenType::EOF => break,
                 _ => (),
@@ -50,7 +56,13 @@ pub fn generate_ast(tokens: Vec<Token>) -> (Node, Vec<String>) {
 }
 
 fn parse(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
-    if let Some(Token::Token(token_type, _)) = tokens.peek() {
+    if let Some(Token::Token {
+        token_type,
+        line,
+        column,
+        ..
+    }) = tokens.peek()
+    {
         match token_type {
             TokenType::Keyword => parse_statement(tokens),
             _ => parse_expression(tokens),
@@ -61,10 +73,16 @@ fn parse(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
 }
 
 fn parse_statement(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
-    if let Some(Token::Token(_, name)) = tokens.peek() {
-        match name.as_str() {
+    if let Some(Token::Token {
+        value,
+        line,
+        column,
+        ..
+    }) = tokens.peek()
+    {
+        match value.as_str() {
             "let" => parse_variable_declaration_expression(tokens),
-            _ => Err(format!("Found unknown keyword: '{}'", name)),
+            _ => Err(format!("Found unknown keyword: '{}'", value)),
         }
     } else {
         Err(format!("error, somehow?"))
@@ -90,7 +108,13 @@ fn parse_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Stri
 fn parse_assignment_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
     let left = parse_additive_expression(tokens)?;
 
-    if let Some(Token::Token(token_type, _)) = tokens.peek() {
+    if let Some(Token::Token {
+        token_type,
+        line,
+        column,
+        ..
+    }) = tokens.peek()
+    {
         match token_type {
             TokenType::AssignmentOperator => {
                 tokens.next();
@@ -111,7 +135,13 @@ fn parse_assignment_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result
 fn parse_additive_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
     let mut left = parse_multiplicative_expression(tokens)?;
 
-    while let Some(Token::Token(_, value)) = tokens.peek().cloned() {
+    while let Some(Token::Token {
+        value,
+        line,
+        column,
+        ..
+    }) = tokens.peek().cloned()
+    {
         if ["+", "-"].contains(&value.as_str()) {
             tokens.next();
             let operand = value.chars().next().unwrap();
@@ -132,7 +162,13 @@ fn parse_additive_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<N
 fn parse_multiplicative_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
     let mut left = parse_primary_expression(tokens)?;
 
-    while let Some(Token::Token(_, value)) = tokens.peek().cloned() {
+    while let Some(Token::Token {
+        value,
+        line,
+        column,
+        ..
+    }) = tokens.peek().cloned()
+    {
         if ["*", "/", "%", "^"].contains(&value.as_str()) {
             tokens.next();
             let operand = value.chars().next().unwrap();
@@ -151,7 +187,13 @@ fn parse_multiplicative_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Re
 }
 
 fn parse_primary_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
-    if let Some(Token::Token(token_type, value)) = tokens.next() {
+    if let Some(Token::Token {
+        token_type,
+        value,
+        line,
+        column,
+    }) = tokens.next()
+    {
         match token_type {
             TokenType::Integer => Ok(Node::IntegerLiteral(value.parse::<i128>().unwrap())),
             TokenType::Float => Ok(Node::FloatLiteral(value.parse::<f64>().unwrap())),
@@ -159,12 +201,23 @@ fn parse_primary_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<No
             TokenType::OpenParenthesis => {
                 let node = parse_expression(tokens)?;
 
-                if let Some(Token::Token(token_type, value)) = tokens.next() {
+                if let Some(Token::Token {
+                    token_type,
+                    value,
+                    line,
+                    column,
+                }) = tokens.next()
+                {
                     match token_type {
                         TokenType::CloseParenthesis => Ok(node),
                         _ => Err(format!(
                             "Syntax Error: Expected a ')' found '{:?}'",
-                            Token::Token(token_type, value)
+                            Token::Token {
+                                token_type,
+                                value,
+                                line,
+                                column
+                            }
                         )),
                     }
                 } else {
@@ -173,7 +226,12 @@ fn parse_primary_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<No
             }
             _ => Err(format!(
                 "Syntax Error: Unexpected token '{:?}'",
-                Token::Token(token_type, value)
+                Token::Token {
+                    token_type,
+                    value,
+                    line,
+                    column
+                }
             )),
         }
     } else {
