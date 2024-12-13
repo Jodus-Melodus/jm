@@ -1,4 +1,9 @@
-use std::{collections::HashMap, io::Write};
+use std::{
+    collections::HashMap,
+    env,
+    fs::File,
+    io::{self, Read, Write},
+};
 
 use error::Error;
 
@@ -15,7 +20,31 @@ fn read_line(prompt: &str) -> String {
     buffer
 }
 
-fn main() -> Result<(), Error> {
+fn read_file(path: &str) -> io::Result<String> {
+    let mut file = File::open(path)?;
+    let mut buffer = String::new();
+    file.read_to_string(&mut buffer)?;
+    Ok(buffer)
+}
+
+fn run_program(path: &str) -> Result<(), Error> {
+    let source_code = read_file(path).unwrap();
+    let mut environment = HashMap::new();
+
+    let tokens = lexer::tokenize(&source_code)?;
+    let (ast, errors) = parser::generate_ast(tokens);
+    if errors.len() > 0 {
+        for error in errors {
+            println!("{}", error);
+        }
+        return Ok(());
+    }
+
+    interpreter::evaluate(ast, &mut environment)?;
+    Ok(())
+}
+
+fn program_loop() -> Result<(), Error> {
     let mut source_code = String::from(' ');
     let mut environment = HashMap::new();
 
@@ -33,6 +62,19 @@ fn main() -> Result<(), Error> {
         let result = interpreter::evaluate(ast, &mut environment)?;
 
         println!("{:?}", result);
+    }
+
+    Ok(())
+}
+
+fn main() -> Result<(), Error> {
+    let arguments = env::args().collect::<Vec<String>>()[1..].to_vec();
+
+    if arguments.len() > 0 {
+        let file_path = arguments[0].as_str();
+        run_program(file_path)?;
+    } else {
+        program_loop()?;
     }
 
     Ok(())
