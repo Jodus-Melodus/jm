@@ -1,4 +1,7 @@
-use crate::lexer::{Token, TokenType};
+use crate::{
+    error::{Error, ErrorType},
+    lexer::{Token, TokenType},
+};
 use core::iter::Peekable;
 use std::vec::IntoIter;
 
@@ -26,7 +29,7 @@ pub enum Node {
     },
 }
 
-pub fn generate_ast(tokens: Vec<Token>) -> (Node, Vec<String>) {
+pub fn generate_ast(tokens: Vec<Token>) -> (Node, Vec<Error>) {
     let mut program = Vec::new();
     let mut tokens = tokens.into_iter().peekable();
     let mut errors = Vec::new();
@@ -49,45 +52,65 @@ pub fn generate_ast(tokens: Vec<Token>) -> (Node, Vec<String>) {
     (Node::Scope { body: program }, errors)
 }
 
-fn parse(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
+fn parse(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
     if let Some(Token::Token { token_type, .. }) = tokens.peek() {
         match token_type {
             TokenType::Keyword => parse_statement(tokens),
             _ => parse_expression(tokens),
         }
     } else {
-        Err(format!("Expected token"))
+        Err(Error::new(
+            ErrorType::SyntaxError,
+            format!("Expected token"),
+            0,
+            0,
+        ))
     }
 }
 
-fn parse_statement(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
+fn parse_statement(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
     if let Some(Token::Token { value, .. }) = tokens.peek() {
         match value.as_str() {
             "let" => parse_variable_declaration_expression(tokens),
-            _ => Err(format!("Found unknown keyword: '{}'", value)),
+            _ => Err(Error::new(
+                ErrorType::NameError,
+                format!("Found unknown keyword '{}'", value),
+                0,
+                0,
+            )),
         }
     } else {
-        Err(format!("Expected token"))
+        Err(Error::new(
+            ErrorType::SyntaxError,
+            format!("Expected token"),
+            0,
+            0,
+        ))
     }
 }
 
 fn parse_variable_declaration_expression(
     tokens: &mut Peekable<IntoIter<Token>>,
-) -> Result<Node, String> {
+) -> Result<Node, Error> {
     tokens.next();
 
     let assignment = parse_assignment_expression(tokens)?;
     match assignment {
         Node::AssignmentExpression { name, value } => Ok(Node::VariableDeclaration { name, value }),
-        _ => Err(format!("Expected variable assignment")),
+        _ => Err(Error::new(
+            ErrorType::SyntaxError,
+            format!("Expected variable assignment"),
+            0,
+            0,
+        )),
     }
 }
 
-fn parse_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
+fn parse_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
     parse_assignment_expression(tokens)
 }
 
-fn parse_assignment_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
+fn parse_assignment_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
     let left = parse_additive_expression(tokens)?;
 
     if let Some(Token::Token { token_type, .. }) = tokens.peek() {
@@ -108,7 +131,7 @@ fn parse_assignment_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result
     }
 }
 
-fn parse_additive_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
+fn parse_additive_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
     let mut left = parse_multiplicative_expression(tokens)?;
 
     while let Some(Token::Token { value, .. }) = tokens.peek().cloned() {
@@ -129,7 +152,7 @@ fn parse_additive_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<N
     Ok(left)
 }
 
-fn parse_multiplicative_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
+fn parse_multiplicative_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
     let mut left = parse_primary_expression(tokens)?;
 
     while let Some(Token::Token { value, .. }) = tokens.peek().cloned() {
@@ -150,7 +173,7 @@ fn parse_multiplicative_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Re
     Ok(left)
 }
 
-fn parse_primary_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {
+fn parse_primary_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
     if let Some(Token::Token {
         token_type,
         value,
@@ -174,31 +197,35 @@ fn parse_primary_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<No
                 {
                     match token_type {
                         TokenType::CloseParenthesis => Ok(node),
-                        _ => Err(format!(
-                            "Syntax Error: Expected a ')' found '{:?}'",
-                            Token::Token {
-                                token_type,
-                                value,
-                                line,
-                                column
-                            }
+                        _ => Err(Error::new(
+                            ErrorType::SyntaxError,
+                            format!("Expected a ')' found '{}'", value),
+                            line,
+                            column,
                         )),
                     }
                 } else {
-                    Err(format!("Syntax Error: Expected a ')'..."))
+                    Err(Error::new(
+                        ErrorType::SyntaxError,
+                        format!("Expected a ')'"),
+                        0,
+                        0,
+                    ))
                 }
             }
-            _ => Err(format!(
-                "Syntax Error: Unexpected token '{:?}'",
-                Token::Token {
-                    token_type,
-                    value,
-                    line,
-                    column
-                }
+            _ => Err(Error::new(
+                ErrorType::SyntaxError,
+                format!("Unexpected token '{}'", value),
+                line,
+                column,
             )),
         }
     } else {
-        Err(format!("Expected a token."))
+        Err(Error::new(
+            ErrorType::SyntaxError,
+            format!("Expected a token."),
+            0,
+            0,
+        ))
     }
 }
