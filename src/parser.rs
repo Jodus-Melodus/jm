@@ -26,9 +26,10 @@ pub enum Node {
     },
 }
 
-pub fn generate_ast(tokens: Vec<Token>) -> Result<Node, String> {
+pub fn generate_ast(tokens: Vec<Token>) -> (Node, Vec<String>) {
     let mut program = Vec::new();
     let mut tokens = tokens.into_iter().peekable();
+    let mut errors = Vec::new();
 
     loop {
         if let Some(Token::Token(token_type, _)) = tokens.peek().cloned() {
@@ -38,15 +39,14 @@ pub fn generate_ast(tokens: Vec<Token>) -> Result<Node, String> {
             }
 
             let result = parse(&mut tokens);
-            if let Ok(expr) = result {
-                program.push(expr);
-            } else {
-                return result;
+            match result {
+                Ok(expr) => program.push(expr),
+                Err(err) => errors.push(err),
             }
         }
     }
 
-    Ok(Node::Scope { body: program })
+    (Node::Scope { body: program }, errors)
 }
 
 fn parse(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, String> {

@@ -19,7 +19,14 @@ fn main() -> Result<(), String> {
     while !source_code.is_empty() {
         source_code = read_line("> ");
         let tokens = lexer::tokenize(&source_code)?;
-        let ast = parser::generate_ast(tokens)?;
+        let (ast, errors) = parser::generate_ast(tokens);
+        if errors.len() > 0 {
+            for error in errors {
+                println!("{}", error);
+            }
+            return Ok(());
+        }
+
         let result = interpreter::evaluate(ast, &mut environment)?;
 
         println!("{:?}", result);
