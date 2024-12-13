@@ -1,3 +1,5 @@
+use crate::error::{Error, ErrorType};
+
 #[derive(Debug, Clone)]
 pub enum TokenType {
     BinaryOperator,
@@ -28,7 +30,7 @@ pub enum Token {
 
 pub const KEYWORDS: [&str; 5] = ["let", "if", "else", "while", "for"];
 
-pub fn tokenize(source_code: &str) -> Result<Vec<Token>, String> {
+pub fn tokenize(source_code: &str) -> Result<Vec<Token>, Error> {
     let mut tokens = Vec::new();
     let mut number = String::new();
     let mut name = String::new();
@@ -144,8 +146,11 @@ pub fn tokenize(source_code: &str) -> Result<Vec<Token>, String> {
             '.' => {
                 if parsing_number {
                     if number.contains('.') {
-                        return Err(format!(
-                            "Syntax Error: Number cannot contain more than one decimal."
+                        return Err(Error::new(
+                            ErrorType::SyntaxError,
+                            format!("Number cannot contain more than one decimal."),
+                            line,
+                            column,
                         ));
                     }
 
@@ -160,7 +165,14 @@ pub fn tokenize(source_code: &str) -> Result<Vec<Token>, String> {
                     });
                 }
             }
-            _ => return Err(format!("Invalid character found: '{:?}'", character)),
+            _ => {
+                return Err(Error::new(
+                    ErrorType::SyntaxError,
+                    format!("Invalid character found: '{:?}'", character),
+                    line,
+                    column,
+                ))
+            }
         }
         column += 1;
     }

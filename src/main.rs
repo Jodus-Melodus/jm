@@ -1,5 +1,8 @@
 use std::{collections::HashMap, io::Write};
 
+use error::Error;
+
+pub mod error;
 pub mod interpreter;
 pub mod lexer;
 pub mod parser;
@@ -12,7 +15,7 @@ fn read_line(prompt: &str) -> String {
     buffer
 }
 
-fn main() -> Result<(), String> {
+fn main() -> Result<(), Error> {
     let mut source_code = String::from(' ');
     let mut environment = HashMap::new();
 
