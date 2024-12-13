@@ -52,7 +52,7 @@ pub fn tokenize(source_code: &str) -> Result<Vec<Token>, String> {
         }
 
         match character {
-            ' ' | '\t' => (),
+            ' ' | '\t' | '\n' | '\r' => continue,
             '=' => tokens.push(Token::Token(
                 TokenType::AssignmentOperator,
                 String::from(character),

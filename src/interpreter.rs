@@ -113,17 +113,15 @@ fn evaluate_assignment_expression(
     value: Node,
     env: &mut HashMap<String, RuntimeValue>,
 ) -> Result<RuntimeValue, String> {
-    let name = evaluate(name, env)?;
-    let value = evaluate(value, env)?;
-    match name {
-        RuntimeValue::String(n) => {
-            let res = assign(env, n, value.clone());
-            match res {
-                Err(e) => Err(e),
-                Ok(_) => Ok(value),
-            }
+    if let Node::Identifier(name) = name {
+        let value = evaluate(value, env)?;
+        let res = assign(env, name, value.clone());
+        match res {
+            Err(e) => Err(e),
+            Ok(_) => Ok(value),
         }
-        _ => Err(format!("Expected a string value")),
+    } else {
+        Err(format!("Expected a string value, found '{:?}'", name))
     }
 }
 
