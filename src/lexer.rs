@@ -35,10 +35,18 @@ pub fn tokenize(source_code: &str) -> Result<Vec<Token>, Error> {
     let mut number = String::new();
     let mut name = String::new();
     let mut parsing_number = false;
+    let mut parsing_comment = false;
     let mut line = 1;
     let mut column = 1;
 
     for character in source_code.chars() {
+        if parsing_comment {
+            if character == '!' {
+                parsing_comment = false;
+            }
+            continue;
+        }
+
         if !character.is_alphanumeric() && '.' != character {
             if !name.is_empty() {
                 if KEYWORDS.contains(&name.as_str()) {
@@ -82,6 +90,7 @@ pub fn tokenize(source_code: &str) -> Result<Vec<Token>, Error> {
 
         match character {
             ' ' | '\t' => continue,
+            '#' => parsing_comment = true,
             '\n' | '\r' => {
                 line += 1;
                 column = 1;
@@ -211,6 +220,15 @@ pub fn tokenize(source_code: &str) -> Result<Vec<Token>, Error> {
                 column,
             });
         }
+    }
+
+    if parsing_comment {
+        return Err(Error::new(
+            ErrorType::SyntaxError,
+            format!("Comment not closed."),
+            line,
+            column,
+        ));
     }
 
     tokens.push(Token::Token {
