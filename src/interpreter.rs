@@ -1,5 +1,6 @@
 use crate::{
     error::{Error, ErrorType},
+
     parser::Node,
 };
 use std::collections::HashMap;
@@ -11,15 +12,26 @@ pub enum RuntimeValue {
     Float(f64),
     String(String),
     Boolean(bool),
-    NativeFunction {
-        args: Vec<RuntimeValue>,
-    },
     Array(Vec<RuntimeValue>),
     Iterable(Vec<Node>),
     Function {
         args: Vec<RuntimeValue>,
         body: Vec<Node>,
     },
+}
+
+pub fn generate_environment() -> HashMap<String, RuntimeValue> {
+    let environment = HashMap::new();
+
+    // environment.insert(
+    //     "print".to_string(),
+    //     RuntimeValue::NativeFunction {
+    //         args: vec![],
+    //         function_call: std::sync::Arc::new(|x| nf_print(x)),
+    //     },
+    // );
+
+    environment
 }
 
 fn declare(

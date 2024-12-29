@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     env,
     fs::File,
     io::{self, Read, Write},
@@ -27,9 +26,15 @@ fn read_file(path: &str) -> io::Result<String> {
     Ok(buffer)
 }
 
+fn write_file(path: &str, content: &str) -> io::Result<()> {
+    let mut file = File::create(path)?;
+    file.write_all(content.as_bytes())?;
+    Ok(())
+}
+
 fn run_program(path: &str) -> Result<(), Error> {
     let source_code = read_file(path).unwrap();
-    let mut environment = HashMap::new();
+    let mut environment = interpreter::generate_environment();
 
     let tokens = lexer::tokenize(&source_code)?;
     let (ast, errors) = parser::generate_ast(tokens);
@@ -40,13 +45,15 @@ fn run_program(path: &str) -> Result<(), Error> {
         return Ok(());
     }
 
+    write_file("ast.json", &format!("{:?}", ast)).unwrap();
+
     interpreter::evaluate(ast, &mut environment)?;
     Ok(())
 }
 
 fn program_loop() -> Result<(), Error> {
     let mut source_code = String::from(' ');
-    let mut environment = HashMap::new();
+    let mut environment = interpreter::generate_environment();
 
     while !source_code.is_empty() {
         source_code = read_line("> ");

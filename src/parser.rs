@@ -5,7 +5,7 @@ use crate::{
 use core::iter::Peekable;
 use std::vec::IntoIter;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum Node {
     StringLiteral(String),
     FloatLiteral(f64),
@@ -27,6 +27,59 @@ pub enum Node {
     Scope {
         body: Vec<Node>,
     },
+}
+
+impl std::fmt::Debug for Node {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = match self {
+            Node::StringLiteral(s) => format!("
+                {{
+                    \"kind\": \"string literal\",
+                    \"value\": \"{}\"
+                }}", s),
+            Node::FloatLiteral(f) => format!("
+                {{
+                    \"kind\": \"float literal\",
+                    \"value\": {}
+                }}", f),
+            Node::IntegerLiteral(i) => format!("
+                {{
+                    \"kind\": \"integer literal\",
+                    \"value\": {}
+                }}", i),
+            Node::Identifier(i) => format!("
+                {{
+                    \"kind\": \"identifier\",
+                    \"value\": \"{}\"
+                }}", i),
+            Node::BinaryExpression { left, operand, right } => format!("
+                {{
+                    \"kind\": \"binary expression\",
+                    \"left\": {:?},
+                    \"operand\": \"{}\",
+                    \"right\": {:?}
+                }}", left, operand, right),
+            Node::AssignmentExpression { name, value } => format!("
+                {{
+                    \"kind\": \"assignment expression\",
+                    \"name\": \"{:?}\",
+                    \"value\": {:?}
+                }}", name, value),
+            Node::VariableDeclaration { name, value } => format!("
+                {{
+                    \"kind\": \"variable declaration\",
+                    \"name\": \"{:?}\",
+                    \"value\": {:?}
+                }}", name, value),
+            Node::Scope { body } => format!("
+                {{
+                    \"kind\": \"scope\",
+                    \"body\": {:?}
+                }}"
+                , body),
+        };
+        f.write_str(&value)
+    }
 }
 
 pub fn generate_ast(tokens: Vec<Token>) -> (Node, Vec<Error>) {
@@ -212,6 +265,29 @@ fn parse_primary_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<No
                         0,
                     ))
                 }
+            }
+            TokenType::OpenBrace => {
+                let mut body = Vec::new();
+
+                loop {
+                    if let Some(Token::Token { token_type, .. }) = tokens.peek().cloned() {
+                        match token_type {
+                            TokenType::CloseBrace => {
+                                tokens.next();
+                                break;
+                            }
+                            _ => {
+                                let result = parse(tokens);
+                                match result {
+                                    Ok(expr) => body.push(expr),
+                                    Err(err) => return Err(err),
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Ok(Node::Scope { body })
             }
             _ => Err(Error::new(
                 ErrorType::SyntaxError,

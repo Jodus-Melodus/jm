@@ -1,0 +1,33 @@
+
+                {
+                    "kind": "scope",
+                    "body": [
+                {
+                    "kind": "binary expression",
+                    "left": 
+                {
+                    "kind": "integer literal",
+                    "value": 5
+                },
+                    "operand": "+",
+                    "right": 
+                {
+                    "kind": "integer literal",
+                    "value": 32
+                }
+                }, 
+                {
+                    "kind": "binary expression",
+                    "left": 
+                {
+                    "kind": "integer literal",
+                    "value": 3
+                },
+                    "operand": "+",
+                    "right": 
+                {
+                    "kind": "integer literal",
+                    "value": 65
+                }
+                }]
+                }
