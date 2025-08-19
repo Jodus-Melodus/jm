@@ -1,8 +1,8 @@
-use crate::interpreter::RuntimeValue;
+use crate::types::RuntimeValue;
 
 pub fn nf_print(args: Vec<RuntimeValue>) -> RuntimeValue {
     for arg in args {
-        print!("{:?}", arg);
+        print!("{}", arg);
     }
 
     RuntimeValue::Null

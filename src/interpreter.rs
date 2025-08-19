@@ -1,106 +1,9 @@
 use crate::{
+    environment,
     error::{Error, ErrorType},
-    native_functions::nf_print,
-    parser::Node,
+    types::{Node, RuntimeValue},
 };
-use std::{
-    collections::HashMap,
-    fmt::{write, Debug},
-};
-
-#[derive(Clone)]
-pub enum RuntimeValue {
-    Null,
-    Integer(i128),
-    Float(f64),
-    String(String),
-    Boolean(bool),
-    Array(Vec<RuntimeValue>),
-    Iterable(Vec<Node>),
-    Function {
-        args: Vec<RuntimeValue>,
-        body: Vec<Node>,
-    },
-    NativeFunction {
-        args: Vec<RuntimeValue>,
-        function_call: std::sync::Arc<dyn Fn(RuntimeValue)>,
-    },
-}
-
-impl Debug for RuntimeValue {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            RuntimeValue::Null => write!(f, "NULL"),
-            RuntimeValue::Integer(i) => write!(f, "{}", i),
-            RuntimeValue::Float(r) => write!(f, "{}", r),
-            RuntimeValue::String(s) => write!(f, "{}", s),
-            RuntimeValue::Boolean(b) => write!(f, "{}", b),
-            RuntimeValue::Array(values) => write!(f, "{:?}", values),
-            RuntimeValue::Iterable(nodes) => todo!(),
-            RuntimeValue::Function { args, body } => write!(f, "{:?} -> {:?}", args, body),
-            RuntimeValue::NativeFunction {
-                args,
-                function_call,
-            } => write!(f, "{:?} -> function_call", args),
-        }
-    }
-}
-
-pub fn generate_environment() -> HashMap<String, RuntimeValue> {
-    let mut environment = HashMap::new();
-
-    environment.insert(
-        "print".to_string(),
-        RuntimeValue::NativeFunction {
-            args: vec![],
-            function_call: std::sync::Arc::new(|x| {
-                nf_print(vec![x]);
-            }),
-        },
-    );
-
-    environment
-}
-
-fn declare(
-    hashmap: &mut HashMap<String, RuntimeValue>,
-    name: String,
-    value: RuntimeValue,
-) -> Result<(), Error> {
-    if hashmap.contains_key(&name) {
-        Err(Error::new(
-            ErrorType::NameError,
-            format!("Variable '{}' already declared", name),
-            0,
-            0,
-        ))
-    } else {
-        hashmap.insert(name, value);
-        Ok(())
-    }
-}
-
-fn assign(
-    hashmap: &mut HashMap<String, RuntimeValue>,
-    name: String,
-    value: RuntimeValue,
-) -> Result<(), Error> {
-    if hashmap.contains_key(&name) {
-        hashmap.insert(name, value);
-        Ok(())
-    } else {
-        Err(Error::new(
-            ErrorType::NameError,
-            format!("'{}' is undefined", name),
-            0,
-            0,
-        ))
-    }
-}
-
-fn lookup(hashmap: &mut HashMap<String, RuntimeValue>, name: String) -> Option<RuntimeValue> {
-    hashmap.get(&name).cloned()
-}
+use std::collections::HashMap;
 
 pub fn evaluate(
     node: Node,
@@ -137,7 +40,7 @@ fn evaluate_identifier(
     name: String,
     env: &mut HashMap<String, RuntimeValue>,
 ) -> Result<RuntimeValue, Error> {
-    let result = lookup(env, name.clone());
+    let result = environment::lookup(env, name.clone());
     match result {
         Some(value) => Ok(value.clone()),
         None => Err(Error::new(
@@ -156,7 +59,7 @@ fn evaluate_variable_declaration(
 ) -> Result<RuntimeValue, Error> {
     if let Node::Identifier(name) = name {
         let value = evaluate(value, env)?;
-        let res = declare(env, name, value.clone());
+        let res = environment::declare(env, name, value.clone());
         match res {
             Err(e) => Err(e),
             Ok(_) => Ok(value),
@@ -178,7 +81,7 @@ fn evaluate_assignment_expression(
 ) -> Result<RuntimeValue, Error> {
     if let Node::Identifier(name) = name {
         let value = evaluate(value, env)?;
-        let res = assign(env, name, value.clone());
+        let res = environment::assign(env, name, value.clone());
         match res {
             Err(e) => Err(e),
             Ok(_) => Ok(value),

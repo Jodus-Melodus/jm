@@ -1,32 +1,7 @@
-use crate::error::{Error, ErrorType};
-
-#[derive(Debug, Clone)]
-pub enum TokenType {
-    BinaryOperator,
-    Float,
-    Integer,
-    Identifier,
-    Dot,
-    OpenParenthesis,
-    CloseParenthesis,
-    OpenBracket,
-    CloseBracket,
-    OpenBrace,
-    CloseBrace,
-    Keyword,
-    AssignmentOperator,
-    EOF,
-}
-
-#[derive(Debug, Clone)]
-pub enum Token {
-    Token {
-        token_type: TokenType,
-        value: String,
-        line: u128,
-        column: u128,
-    },
-}
+use crate::{
+    error::{Error, ErrorType},
+    types::{Token, TokenType},
+};
 
 pub const KEYWORDS: [&str; 5] = ["let", "if", "else", "while", "for"];
 

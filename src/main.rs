@@ -6,11 +6,13 @@ use std::{
 
 use error::Error;
 
+pub mod environment;
 pub mod error;
 pub mod interpreter;
 pub mod lexer;
 pub mod native_functions;
 pub mod parser;
+pub mod types;
 
 fn read_line(prompt: &str) -> String {
     let mut buffer = String::new();
@@ -35,7 +37,7 @@ fn write_file(path: &str, content: &str) -> io::Result<()> {
 
 fn run_program(path: &str) -> Result<(), Error> {
     let source_code = read_file(path).unwrap();
-    let mut environment = interpreter::generate_environment();
+    let mut environment = environment::generate_environment();
 
     let tokens = lexer::tokenize(&source_code)?;
     let (ast, errors) = parser::generate_ast(tokens);
@@ -54,7 +56,7 @@ fn run_program(path: &str) -> Result<(), Error> {
 
 fn program_loop() -> Result<(), Error> {
     let mut source_code = String::from(' ');
-    let mut environment = interpreter::generate_environment();
+    let mut environment = environment::generate_environment();
 
     while !source_code.is_empty() {
         source_code = read_line("> ");
