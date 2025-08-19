@@ -1,11 +1,14 @@
 use crate::{
     error::{Error, ErrorType},
-
+    native_functions::nf_print,
     parser::Node,
 };
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    fmt::{write, Debug},
+};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum RuntimeValue {
     Null,
     Integer(i128),
@@ -18,18 +21,43 @@ pub enum RuntimeValue {
         args: Vec<RuntimeValue>,
         body: Vec<Node>,
     },
+    NativeFunction {
+        args: Vec<RuntimeValue>,
+        function_call: std::sync::Arc<dyn Fn(RuntimeValue)>,
+    },
+}
+
+impl Debug for RuntimeValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RuntimeValue::Null => write!(f, "NULL"),
+            RuntimeValue::Integer(i) => write!(f, "{}", i),
+            RuntimeValue::Float(r) => write!(f, "{}", r),
+            RuntimeValue::String(s) => write!(f, "{}", s),
+            RuntimeValue::Boolean(b) => write!(f, "{}", b),
+            RuntimeValue::Array(values) => write!(f, "{:?}", values),
+            RuntimeValue::Iterable(nodes) => todo!(),
+            RuntimeValue::Function { args, body } => write!(f, "{:?} -> {:?}", args, body),
+            RuntimeValue::NativeFunction {
+                args,
+                function_call,
+            } => write!(f, "{:?} -> function_call", args),
+        }
+    }
 }
 
 pub fn generate_environment() -> HashMap<String, RuntimeValue> {
-    let environment = HashMap::new();
+    let mut environment = HashMap::new();
 
-    // environment.insert(
-    //     "print".to_string(),
-    //     RuntimeValue::NativeFunction {
-    //         args: vec![],
-    //         function_call: std::sync::Arc::new(|x| nf_print(x)),
-    //     },
-    // );
+    environment.insert(
+        "print".to_string(),
+        RuntimeValue::NativeFunction {
+            args: vec![],
+            function_call: std::sync::Arc::new(|x| {
+                nf_print(vec![x]);
+            }),
+        },
+    );
 
     environment
 }

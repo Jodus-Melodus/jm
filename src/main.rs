@@ -9,6 +9,7 @@ use error::Error;
 pub mod error;
 pub mod interpreter;
 pub mod lexer;
+pub mod native_functions;
 pub mod parser;
 
 fn read_line(prompt: &str) -> String {
