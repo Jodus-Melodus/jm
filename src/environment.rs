@@ -9,7 +9,10 @@ use crate::{
 pub fn generate_environment() -> HashMap<String, RuntimeValue> {
     let mut environment = HashMap::new();
 
-    environment.insert("print".to_string(), RuntimeValue::NativeFunction(nf_print));
+    environment.insert(
+        "print".to_string(),
+        RuntimeValue::NativeFunction("print".to_string(), nf_print),
+    );
 
     environment
 }

@@ -46,7 +46,7 @@ fn evaluate_function_call(
     let func = evaluate(name, env)?;
 
     match func {
-        RuntimeValue::NativeFunction(function_call) => {
+        RuntimeValue::NativeFunction(_, function_call) => {
             if let Node::Arguments(arguments) = arguments {
                 let args = evaluate_arguments(arguments, env)?;
                 Ok(function_call(args))

@@ -9,11 +9,8 @@ pub enum RuntimeValue {
     Boolean(bool),
     Array(Vec<RuntimeValue>),
     Iterable(Vec<Node>),
-    Function {
-        args: Vec<RuntimeValue>,
-        body: Vec<Node>,
-    },
-    NativeFunction(fn(RuntimeValue) -> RuntimeValue),
+    Function(Vec<RuntimeValue>, Vec<Node>),
+    NativeFunction(String, fn(RuntimeValue) -> RuntimeValue),
 }
 
 #[derive(Clone)]
@@ -82,10 +79,19 @@ impl Display for RuntimeValue {
             RuntimeValue::Float(r) => write!(f, "{}", r),
             RuntimeValue::String(s) => write!(f, "{}", s),
             RuntimeValue::Boolean(b) => write!(f, "{}", b),
-            RuntimeValue::Array(_) => todo!(),
+            RuntimeValue::Array(a) => {
+                write!(
+                    f,
+                    "{}",
+                    a.iter()
+                        .map(|v| v.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                )
+            }
             RuntimeValue::Iterable(_) => todo!(),
-            RuntimeValue::Function { args: _, body: _ } => todo!(),
-            RuntimeValue::NativeFunction(_function_call) => todo!(),
+            RuntimeValue::Function(_, _) => todo!(),
+            RuntimeValue::NativeFunction(name, _) => write!(f, "Native Function: {}", name),
         }
     }
 }
