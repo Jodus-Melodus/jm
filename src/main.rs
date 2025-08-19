@@ -38,18 +38,12 @@ fn write_file(path: &str, content: &str) -> io::Result<()> {
 fn run_program(path: &str) -> Result<(), Error> {
     let source_code = read_file(path).unwrap();
     let mut environment = environment::generate_environment();
-
     let tokens = lexer::tokenize(&source_code)?;
     let (ast, errors) = parser::generate_ast(tokens);
-    if errors.len() > 0 {
-        for error in errors {
-            println!("{}", error);
-        }
-        return Ok(());
+    for error in errors {
+        println!("{}", error);
     }
-
     write_file("ast.json", &format!("{:?}", ast)).unwrap();
-
     interpreter::evaluate(ast, &mut environment)?;
     Ok(())
 }
@@ -65,22 +59,18 @@ fn program_loop() -> Result<(), Error> {
         for error in errors {
             println!("{}", error);
         }
-
         interpreter::evaluate(ast, &mut environment)?;
     }
-
     Ok(())
 }
 
 fn main() -> Result<(), Error> {
     let arguments = env::args().collect::<Vec<String>>()[1..].to_vec();
-
     if arguments.len() > 0 {
         let file_path = arguments[0].as_str();
         run_program(file_path)?;
     } else {
         program_loop()?;
     }
-
     Ok(())
 }
