@@ -62,16 +62,11 @@ fn program_loop() -> Result<(), Error> {
         source_code = read_line("> ");
         let tokens = lexer::tokenize(&source_code)?;
         let (ast, errors) = parser::generate_ast(tokens);
-        if errors.len() > 0 {
-            for error in errors {
-                println!("{}", error);
-            }
-            return Ok(());
+        for error in errors {
+            println!("{}", error);
         }
 
-        let result = interpreter::evaluate(ast, &mut environment)?;
-
-        println!("{:?}", result);
+        interpreter::evaluate(ast, &mut environment)?;
     }
 
     Ok(())

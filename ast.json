@@ -1,13 +1,19 @@
-{
-    "kind": "scope",
-    "body": [
-        {
-            "kind": "identifier",
-            "value": "print"
-        },
-        {
-            "kind": "integer literal",
-            "value": 3
-        }
-    ]
-}
+
+                {
+                    "kind": "scope",
+                    "body": [
+                {
+                    "kind": "function call",
+                    "name": 
+                {
+                    "kind": "identifier",
+                    "value": "print"
+                },
+                    "arguments": [
+                {
+                    "kind": "integer literal",
+                    "value": 34
+                }]
+
+                }]
+                }

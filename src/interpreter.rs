@@ -33,22 +33,57 @@ pub fn evaluate(
         Node::VariableDeclaration { name, value } => {
             evaluate_variable_declaration(*name, *value, env)
         }
+        Node::Arguments(arguments) => evaluate_arguments(arguments, env),
+        Node::FunctionCall { name, arguments } => evaluate_function_call(*name, *arguments, env),
     }
+}
+
+fn evaluate_function_call(
+    name: Node,
+    arguments: Node,
+    env: &mut HashMap<String, RuntimeValue>,
+) -> Result<RuntimeValue, Error> {
+    let func = evaluate(name, env)?;
+
+    match func {
+        RuntimeValue::NativeFunction(function_call) => {
+            if let Node::Arguments(arguments) = arguments {
+                let args = evaluate_arguments(arguments, env)?;
+                Ok(function_call(args))
+            } else {
+                Err(Error::new(ErrorType::Error, format!(""), 0, 0))
+            }
+        }
+        _ => Err(Error::new(ErrorType::Error, format!(""), 0, 0)),
+    }
+}
+
+fn evaluate_arguments(
+    args: Vec<Node>,
+    env: &mut HashMap<String, RuntimeValue>,
+) -> Result<RuntimeValue, Error> {
+    let mut arguments = Vec::new();
+
+    for argument in args {
+        arguments.push(evaluate(argument, env)?);
+    }
+
+    Ok(RuntimeValue::Array(arguments))
 }
 
 fn evaluate_identifier(
     name: String,
     env: &mut HashMap<String, RuntimeValue>,
 ) -> Result<RuntimeValue, Error> {
-    let result = environment::lookup(env, name.clone());
-    match result {
-        Some(value) => Ok(value.clone()),
-        None => Err(Error::new(
+    if let Some(result) = environment::lookup(env, name.clone()) {
+        Ok(result)
+    } else {
+        Err(Error::new(
             ErrorType::NameError,
             format!("'{}' is undefined", name),
             0,
             0,
-        )),
+        ))
     }
 }
 

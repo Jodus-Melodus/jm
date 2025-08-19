@@ -13,10 +13,7 @@ pub enum RuntimeValue {
         args: Vec<RuntimeValue>,
         body: Vec<Node>,
     },
-    NativeFunction {
-        args: Vec<RuntimeValue>,
-        function_call: fn(Vec<RuntimeValue>) -> RuntimeValue,
-    },
+    NativeFunction(fn(RuntimeValue) -> RuntimeValue),
 }
 
 #[derive(Clone)]
@@ -41,6 +38,11 @@ pub enum Node {
     Scope {
         body: Vec<Node>,
     },
+    Arguments(Vec<Node>),
+    FunctionCall {
+        name: Box<Node>,
+        arguments: Box<Node>,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -58,6 +60,7 @@ pub enum TokenType {
     CloseBrace,
     Keyword,
     AssignmentOperator,
+    Comma,
     EOF,
 }
 
@@ -82,10 +85,7 @@ impl Display for RuntimeValue {
             RuntimeValue::Array(_) => todo!(),
             RuntimeValue::Iterable(_) => todo!(),
             RuntimeValue::Function { args: _, body: _ } => todo!(),
-            RuntimeValue::NativeFunction {
-                args: _,
-                function_call: _,
-            } => todo!(),
+            RuntimeValue::NativeFunction(_function_call) => todo!(),
         }
     }
 }
@@ -143,7 +143,7 @@ impl Debug for Node {
                 "
                 {{
                     \"kind\": \"assignment expression\",
-                    \"name\": \"{:?}\",
+                    \"name\": {:?},
                     \"value\": {:?}
                 }}",
                 name, value
@@ -152,7 +152,7 @@ impl Debug for Node {
                 "
                 {{
                     \"kind\": \"variable declaration\",
-                    \"name\": \"{:?}\",
+                    \"name\": {:?},
                     \"value\": {:?}
                 }}",
                 name, value
@@ -165,6 +165,17 @@ impl Debug for Node {
                 }}",
                 body
             ),
+            Node::FunctionCall { name, arguments } => format!(
+                "
+                {{
+                    \"kind\": \"function call\",
+                    \"name\": {:?},
+                    \"arguments\": {:?}
+
+                }}",
+                name, arguments
+            ),
+            Node::Arguments(nodes) => format!("{:?}", nodes),
         };
         f.write_str(&value)
     }

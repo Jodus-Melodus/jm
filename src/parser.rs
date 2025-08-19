@@ -86,10 +86,101 @@ fn parse_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Erro
     parse_assignment_expression(tokens)
 }
 
+fn parse_arguments(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
+    if let Some(Token::Token { token_type, .. }) = tokens.next() {
+        match token_type {
+            TokenType::OpenParenthesis => {
+                if let Some(Token::Token { token_type, .. }) = tokens.peek() {
+                    match token_type {
+                        TokenType::CloseParenthesis => Ok(Node::Arguments(vec![])),
+                        _ => {
+                            let args = Node::Arguments(parse_argument_list(tokens)?);
+
+                            if let Some(Token::Token { token_type, .. }) = tokens.next() {
+                                match token_type {
+                                    TokenType::CloseParenthesis => Ok(args),
+                                    _ => Err(Error::new(
+                                        ErrorType::SyntaxError,
+                                        format!("Expected a ')'"),
+                                        0,
+                                        0,
+                                    )),
+                                }
+                            } else {
+                                Err(Error::new(
+                                    ErrorType::SyntaxError,
+                                    format!("Expected a ')'"),
+                                    0,
+                                    0,
+                                ))
+                            }
+                        }
+                    }
+                } else {
+                    Err(Error::new(
+                        ErrorType::SyntaxError,
+                        format!("Expected a ')' or a value"),
+                        0,
+                        0,
+                    ))
+                }
+            }
+            _ => {
+                if let Some(Token::Token { token_type, .. }) = tokens.next() {
+                    match token_type {
+                        TokenType::CloseParenthesis => Ok(Node::Arguments(vec![])),
+                        _ => Err(Error::default()),
+                    }
+                } else {
+                    Err(Error::new(
+                        ErrorType::SyntaxError,
+                        format!("Expected a ')'"),
+                        0,
+                        0,
+                    ))
+                }
+            }
+        }
+    } else {
+        Err(Error::new(
+            ErrorType::SyntaxError,
+            format!("Expected a '('"),
+            0,
+            0,
+        ))
+    }
+}
+
+fn parse_argument_list(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Vec<Node>, Error> {
+    let mut arguments = vec![parse_expression(tokens)?];
+
+    while let Some(Token::Token { token_type, .. }) = tokens.peek() {
+        match token_type {
+            TokenType::Comma => {
+                tokens.next();
+
+                if let Some(Token::Token { .. }) = tokens.peek() {
+                    arguments.push(parse_expression(tokens)?);
+                } else {
+                    return Err(Error::new(
+                        ErrorType::SyntaxError,
+                        format!("Expected a value"),
+                        0,
+                        0,
+                    ));
+                }
+            }
+            _ => break,
+        }
+    }
+
+    Ok(arguments)
+}
+
 fn parse_assignment_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
     let left = parse_additive_expression(tokens)?;
 
-    if let Some(Token::Token { token_type, .. }) = tokens.peek() {
+    if let Some(Token::Token { token_type, .. }) = tokens.peek().cloned() {
         match token_type {
             TokenType::AssignmentOperator => {
                 tokens.next();
@@ -160,7 +251,23 @@ fn parse_primary_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<No
         match token_type {
             TokenType::Integer => Ok(Node::IntegerLiteral(value.parse::<i128>().unwrap())),
             TokenType::Float => Ok(Node::FloatLiteral(value.parse::<f64>().unwrap())),
-            TokenType::Identifier => Ok(Node::Identifier(value.to_string())),
+            TokenType::Identifier => {
+                if let Some(Token::Token { token_type, .. }) = tokens.peek() {
+                    match token_type {
+                        TokenType::OpenParenthesis => {
+                            let args = parse_arguments(tokens)?;
+
+                            Ok(Node::FunctionCall {
+                                name: Box::new(Node::Identifier(value.to_string())),
+                                arguments: Box::new(args),
+                            })
+                        }
+                        _ => Ok(Node::Identifier(value.to_string())),
+                    }
+                } else {
+                    Ok(Node::Identifier(value.to_string()))
+                }
+            }
             TokenType::OpenParenthesis => {
                 let node = parse_expression(tokens)?;
 

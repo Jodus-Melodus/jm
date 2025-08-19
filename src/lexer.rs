@@ -70,6 +70,12 @@ pub fn tokenize(source_code: &str) -> Result<Vec<Token>, Error> {
                 line += 1;
                 column = 1;
             }
+            ',' => tokens.push(Token::Token {
+                token_type: TokenType::Comma,
+                value: String::from(character),
+                line,
+                column,
+            }),
             '=' => tokens.push(Token::Token {
                 token_type: TokenType::AssignmentOperator,
                 value: String::from(character),

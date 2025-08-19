@@ -1,3 +1,5 @@
+use std::fmt::{Debug, Display};
+
 #[derive(Debug)]
 pub enum ErrorType {
     Error,
@@ -22,9 +24,18 @@ impl Error {
             column,
         }
     }
+
+    pub fn default() -> Self {
+        Error {
+            error_type: ErrorType::Error,
+            message: format!(""),
+            line: 0,
+            column: 0,
+        }
+    }
 }
 
-impl std::fmt::Display for Error {
+impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -34,7 +45,7 @@ impl std::fmt::Display for Error {
     }
 }
 
-impl std::fmt::Debug for Error {
+impl Debug for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
