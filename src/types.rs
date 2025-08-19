@@ -19,23 +19,28 @@ pub enum RuntimeValue {
     },
 }
 
-impl Display for RuntimeValue {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            RuntimeValue::Null => write!(f, "NULL"),
-            RuntimeValue::Integer(i) => write!(f, "{}", i),
-            RuntimeValue::Float(r) => write!(f, "{}", r),
-            RuntimeValue::String(s) => write!(f, "{}", s),
-            RuntimeValue::Boolean(b) => write!(f, "{}", b),
-            RuntimeValue::Array(_) => todo!(),
-            RuntimeValue::Iterable(_) => todo!(),
-            RuntimeValue::Function { args: _, body: _ } => todo!(),
-            RuntimeValue::NativeFunction {
-                args: _,
-                function_call: _,
-            } => todo!(),
-        }
-    }
+#[derive(Clone)]
+pub enum Node {
+    StringLiteral(String),
+    FloatLiteral(f64),
+    IntegerLiteral(i128),
+    Identifier(String),
+    BinaryExpression {
+        left: Box<Node>,
+        operand: char,
+        right: Box<Node>,
+    },
+    AssignmentExpression {
+        name: Box<Node>,
+        value: Box<Node>,
+    },
+    VariableDeclaration {
+        name: Box<Node>,
+        value: Box<Node>,
+    },
+    Scope {
+        body: Vec<Node>,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -66,28 +71,23 @@ pub enum Token {
     },
 }
 
-#[derive(Clone)]
-pub enum Node {
-    StringLiteral(String),
-    FloatLiteral(f64),
-    IntegerLiteral(i128),
-    Identifier(String),
-    BinaryExpression {
-        left: Box<Node>,
-        operand: char,
-        right: Box<Node>,
-    },
-    AssignmentExpression {
-        name: Box<Node>,
-        value: Box<Node>,
-    },
-    VariableDeclaration {
-        name: Box<Node>,
-        value: Box<Node>,
-    },
-    Scope {
-        body: Vec<Node>,
-    },
+impl Display for RuntimeValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RuntimeValue::Null => write!(f, "NULL"),
+            RuntimeValue::Integer(i) => write!(f, "{}", i),
+            RuntimeValue::Float(r) => write!(f, "{}", r),
+            RuntimeValue::String(s) => write!(f, "{}", s),
+            RuntimeValue::Boolean(b) => write!(f, "{}", b),
+            RuntimeValue::Array(_) => todo!(),
+            RuntimeValue::Iterable(_) => todo!(),
+            RuntimeValue::Function { args: _, body: _ } => todo!(),
+            RuntimeValue::NativeFunction {
+                args: _,
+                function_call: _,
+            } => todo!(),
+        }
+    }
 }
 
 impl Debug for Node {
