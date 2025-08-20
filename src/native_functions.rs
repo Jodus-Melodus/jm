@@ -8,7 +8,7 @@ pub fn nf_print(args: RuntimeValue) -> RuntimeValue {
                 .iter()
                 .map(|v| v.to_string())
                 .collect::<Vec<_>>()
-                .join(", ")
+                .join(" ")
         );
     }
 

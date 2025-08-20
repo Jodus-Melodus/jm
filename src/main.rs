@@ -54,12 +54,28 @@ fn program_loop() -> Result<(), Error> {
 
     while !source_code.is_empty() {
         source_code = read_line("> ");
-        let tokens = lexer::tokenize(&source_code)?;
-        let (ast, errors) = parser::generate_ast(tokens);
-        for error in errors {
-            println!("{}", error);
+        let result = lexer::tokenize(&source_code);
+        match result {
+            Ok(tokens) => {
+                let (ast, errors) = parser::generate_ast(tokens);
+                for error in errors {
+                    println!("{}", error);
+                }
+
+                let result = interpreter::evaluate(ast, &mut environment);
+                match result {
+                    Ok(_) => (),
+                    Err(e) => {
+                        println!("{}", e);
+                        continue;
+                    }
+                }
+            }
+            Err(e) => {
+                println!("{}", e);
+                continue;
+            }
         }
-        interpreter::evaluate(ast, &mut environment)?;
     }
     Ok(())
 }
