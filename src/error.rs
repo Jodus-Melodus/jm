@@ -24,15 +24,6 @@ impl Error {
             column,
         }
     }
-
-    pub fn default() -> Self {
-        Error {
-            error_type: ErrorType::Error,
-            message: format!(""),
-            line: 0,
-            column: 0,
-        }
-    }
 }
 
 impl Display for Error {
@@ -52,5 +43,16 @@ impl Debug for Error {
             "Error {{ error_type: {:?}, message: {}, line: {}, column: {} }}",
             self.error_type, self.message, self.line, self.column
         )
+    }
+}
+
+impl Default for Error {
+    fn default() -> Self {
+        Error {
+            error_type: ErrorType::Error,
+            message: format!(""),
+            line: 0,
+            column: 0,
+        }
     }
 }

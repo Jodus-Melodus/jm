@@ -87,67 +87,32 @@ fn parse_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Erro
 }
 
 fn parse_arguments(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
-    if let Some(Token::Token { token_type, .. }) = tokens.next() {
-        match token_type {
-            TokenType::OpenParenthesis => {
-                if let Some(Token::Token { token_type, .. }) = tokens.peek() {
-                    match token_type {
-                        TokenType::CloseParenthesis => Ok(Node::Arguments(vec![])),
-                        _ => {
-                            let args = Node::Arguments(parse_argument_list(tokens)?);
+    let Token::Token { token_type, .. } = tokens
+        .next()
+        .ok_or_else(|| Error::new(ErrorType::SyntaxError, format!("Expected a '('"), 0, 0))?;
 
-                            if let Some(Token::Token { token_type, .. }) = tokens.next() {
-                                match token_type {
-                                    TokenType::CloseParenthesis => Ok(args),
-                                    _ => Err(Error::new(
-                                        ErrorType::SyntaxError,
-                                        format!("Expected a ')'"),
-                                        0,
-                                        0,
-                                    )),
-                                }
-                            } else {
-                                Err(Error::new(
-                                    ErrorType::SyntaxError,
-                                    format!("Expected a ')'"),
-                                    0,
-                                    0,
-                                ))
-                            }
-                        }
-                    }
-                } else {
-                    Err(Error::new(
-                        ErrorType::SyntaxError,
-                        format!("Expected a ')' or a value"),
-                        0,
-                        0,
-                    ))
-                }
-            }
-            _ => {
-                if let Some(Token::Token { token_type, .. }) = tokens.next() {
-                    match token_type {
-                        TokenType::CloseParenthesis => Ok(Node::Arguments(vec![])),
-                        _ => Err(Error::default()),
-                    }
-                } else {
-                    Err(Error::new(
-                        ErrorType::SyntaxError,
-                        format!("Expected a ')'"),
-                        0,
-                        0,
-                    ))
-                }
+    match token_type {
+        TokenType::OpenParenthesis => {
+            let Token::Token { token_type, .. } = tokens.peek().ok_or_else(|| {
+                Error::new(
+                    ErrorType::SyntaxError,
+                    format!("Expected a value or ')'"),
+                    0,
+                    0,
+                )
+            })?;
+
+            match token_type {
+                TokenType::CloseParenthesis => Ok(Node::Arguments(vec![])),
+                _ => Ok(Node::Arguments(parse_argument_list(tokens)?)),
             }
         }
-    } else {
-        Err(Error::new(
+        _ => Err(Error::new(
             ErrorType::SyntaxError,
             format!("Expected a '('"),
             0,
             0,
-        ))
+        )),
     }
 }
 
@@ -159,7 +124,7 @@ fn parse_argument_list(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Vec<Nod
             TokenType::Comma => {
                 tokens.next();
 
-                if let Some(Token::Token { .. }) = tokens.peek() {
+                if let Some(_) = tokens.peek() {
                     arguments.push(parse_expression(tokens)?);
                 } else {
                     return Err(Error::new(
@@ -174,7 +139,21 @@ fn parse_argument_list(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Vec<Nod
         }
     }
 
-    Ok(arguments)
+    let Token::Token { token_type, .. } = tokens
+        .peek()
+        .ok_or_else(|| Error::new(ErrorType::SyntaxError, format!("Expected a ')'"), 0, 0))?;
+    match token_type {
+        TokenType::CloseParenthesis => {
+            tokens.next();
+            Ok(arguments)
+        }
+        _ => Err(Error::new(
+            ErrorType::SyntaxError,
+            format!("Expected a ')'"),
+            0,
+            0,
+        )),
+    }
 }
 
 fn parse_assignment_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
