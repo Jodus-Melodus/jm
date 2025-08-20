@@ -1,7 +1,6 @@
 use crate::{
     environment,
-    error::{Error, ErrorType},
-    types::{Node, RuntimeValue},
+    types::{Error, ErrorType, Node, RuntimeValue},
 };
 use std::collections::HashMap;
 

@@ -1,7 +1,4 @@
-use crate::{
-    error::{Error, ErrorType},
-    types::{Node, Token, TokenType},
-};
+use crate::types::{Error, ErrorType, Node, Token, TokenType};
 use core::iter::Peekable;
 use std::vec::IntoIter;
 

@@ -1,7 +1,4 @@
-use crate::{
-    error::{Error, ErrorType},
-    types::{Token, TokenType},
-};
+use crate::types::{Error, ErrorType, Token, TokenType};
 
 pub const KEYWORDS: [&str; 5] = ["let", "if", "else", "while", "for"];
 

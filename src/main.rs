@@ -4,7 +4,7 @@ use std::{
     io::{self, Read, Write},
 };
 
-use error::Error;
+use crate::types::Error;
 
 pub mod environment;
 pub mod error;

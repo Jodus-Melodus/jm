@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    error::{Error, ErrorType},
     native_functions::nf_print,
-    types::RuntimeValue,
+    types::{Error, ErrorType, RuntimeValue},
 };
 
 pub fn generate_environment() -> HashMap<String, RuntimeValue> {
