@@ -26,9 +26,11 @@ pub fn evaluate(
             operand,
             right,
         } => evaluate_binary_expression(*left, operand, *right, env),
-        Node::AssignmentExpression { name, value } => {
-            evaluate_assignment_expression(*name, *value, env)
-        }
+        Node::AssignmentExpression {
+            name,
+            assignment_type,
+            value,
+        } => evaluate_assignment_expression(*name, assignment_type, *value, env),
         Node::VariableDeclaration { name, value } => {
             evaluate_variable_declaration(*name, *value, env)
         }
@@ -110,16 +112,19 @@ fn evaluate_variable_declaration(
 
 fn evaluate_assignment_expression(
     name: Node,
+    assignment_type: char,
     value: Node,
     env: &mut HashMap<String, RuntimeValue>,
 ) -> Result<RuntimeValue, Error> {
     if let Node::Identifier(name) = name {
-        let value = evaluate(value, env)?;
-        let res = environment::assign(env, name, value.clone());
-        match res {
-            Err(e) => Err(e),
-            Ok(_) => Ok(value),
+        let mut assignment_value = evaluate(value, env)?;
+        let current_value = evaluate_identifier(name.clone(), env)?;
+        if assignment_type != '=' {
+            assignment_value =
+                evaluate_calculation(current_value, assignment_type, assignment_value);
         }
+
+        environment::assign(env, name, assignment_value.clone())
     } else {
         Err(Error::new(
             ErrorType::Error,
@@ -139,108 +144,17 @@ fn evaluate_binary_expression(
     let left = evaluate(left, environment)?;
     let right = evaluate(right, environment)?;
 
+    Ok(evaluate_calculation(left, operand, right))
+}
+
+fn evaluate_calculation(left: RuntimeValue, operand: char, right: RuntimeValue) -> RuntimeValue {
     match operand {
-        '+' => match (left.clone(), right.clone()) {
-            (RuntimeValue::Integer(l), RuntimeValue::Integer(r)) => {
-                Ok(RuntimeValue::Integer(l + r))
-            }
-            (RuntimeValue::Integer(l), RuntimeValue::Float(r)) => {
-                Ok(RuntimeValue::Float(l as f64 + r))
-            }
-            (RuntimeValue::Float(l), RuntimeValue::Integer(r)) => {
-                Ok(RuntimeValue::Float(l + r as f64))
-            }
-            (RuntimeValue::Float(l), RuntimeValue::Float(r)) => Ok(RuntimeValue::Float(l + r)),
-            _ => Err(Error::new(
-                ErrorType::TypeError,
-                format!("Incompatible types: '{:?}' and '{:?}'", left, right),
-                0,
-                0,
-            )),
-        },
-        '-' => match (left.clone(), right.clone()) {
-            (RuntimeValue::Integer(l), RuntimeValue::Integer(r)) => {
-                Ok(RuntimeValue::Integer(l - r))
-            }
-            (RuntimeValue::Integer(l), RuntimeValue::Float(r)) => {
-                Ok(RuntimeValue::Float(l as f64 - r))
-            }
-            (RuntimeValue::Float(l), RuntimeValue::Integer(r)) => {
-                Ok(RuntimeValue::Float(l - r as f64))
-            }
-            (RuntimeValue::Float(l), RuntimeValue::Float(r)) => Ok(RuntimeValue::Float(l - r)),
-            _ => Err(Error::new(
-                ErrorType::TypeError,
-                format!("Incompatible types: '{:?}' and '{:?}'", left, right),
-                0,
-                0,
-            )),
-        },
-        '*' => match (left.clone(), right.clone()) {
-            (RuntimeValue::Integer(l), RuntimeValue::Integer(r)) => {
-                Ok(RuntimeValue::Integer(l * r))
-            }
-            (RuntimeValue::Integer(l), RuntimeValue::Float(r)) => {
-                Ok(RuntimeValue::Float(l as f64 * r))
-            }
-            (RuntimeValue::Float(l), RuntimeValue::Integer(r)) => {
-                Ok(RuntimeValue::Float(l * r as f64))
-            }
-            (RuntimeValue::Float(l), RuntimeValue::Float(r)) => Ok(RuntimeValue::Float(l * r)),
-            _ => Err(Error::new(
-                ErrorType::TypeError,
-                format!("Incompatible types: '{:?}' and '{:?}'", left, right),
-                0,
-                0,
-            )),
-        },
-        '/' => match (left.clone(), right.clone()) {
-            (RuntimeValue::Integer(l), RuntimeValue::Integer(r)) => {
-                Ok(RuntimeValue::Float(l as f64 / r as f64))
-            }
-            (RuntimeValue::Integer(l), RuntimeValue::Float(r)) => {
-                Ok(RuntimeValue::Float(l as f64 / r))
-            }
-            (RuntimeValue::Float(l), RuntimeValue::Integer(r)) => {
-                Ok(RuntimeValue::Float(l / r as f64))
-            }
-            (RuntimeValue::Float(l), RuntimeValue::Float(r)) => Ok(RuntimeValue::Float(l / r)),
-            _ => Err(Error::new(
-                ErrorType::TypeError,
-                format!("Incompatible types: '{:?}' and '{:?}'", left, right),
-                0,
-                0,
-            )),
-        },
-        '%' => match (left.clone(), right.clone()) {
-            (RuntimeValue::Integer(l), RuntimeValue::Integer(r)) => {
-                Ok(RuntimeValue::Integer(l % r))
-            }
-            _ => Err(Error::new(
-                ErrorType::TypeError,
-                format!("Incompatible types: '{:?}' and '{:?}'", left, right),
-                0,
-                0,
-            )),
-        },
-        '^' => match (left.clone(), right.clone()) {
-            (RuntimeValue::Integer(l), RuntimeValue::Integer(r)) => {
-                Ok(RuntimeValue::Integer(l.pow(r.try_into().unwrap())))
-            }
-            (RuntimeValue::Integer(l), RuntimeValue::Float(r)) => {
-                Ok(RuntimeValue::Float((l as f64).powf(r)))
-            }
-            (RuntimeValue::Float(l), RuntimeValue::Integer(r)) => {
-                Ok(RuntimeValue::Float(l.powf(r as f64)))
-            }
-            (RuntimeValue::Float(l), RuntimeValue::Float(r)) => Ok(RuntimeValue::Float(l.powf(r))),
-            _ => Err(Error::new(
-                ErrorType::TypeError,
-                format!("Incompatible types: '{:?}' and '{:?}'", left, right),
-                0,
-                0,
-            )),
-        },
-        _ => Ok(RuntimeValue::Null),
+        '+' => left + right,
+        '-' => left - right,
+        '*' => left * right,
+        '/' => left / right,
+        '%' => left % right,
+        // '^' => left right,
+        _ => RuntimeValue::Null,
     }
 }

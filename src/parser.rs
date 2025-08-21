@@ -69,7 +69,9 @@ fn parse_variable_declaration_expression(
 
     let assignment = parse_assignment_expression(tokens)?;
     match assignment {
-        Node::AssignmentExpression { name, value } => Ok(Node::VariableDeclaration { name, value }),
+        Node::AssignmentExpression { name, value, .. } => {
+            Ok(Node::VariableDeclaration { name, value })
+        }
         _ => Err(Error::new(
             ErrorType::SyntaxError,
             format!("Expected variable assignment"),
@@ -156,15 +158,19 @@ fn parse_argument_list(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Vec<Nod
 fn parse_assignment_expression(tokens: &mut Peekable<IntoIter<Token>>) -> Result<Node, Error> {
     let left = parse_additive_expression(tokens)?;
 
-    if let Some(Token::Token { token_type, .. }) = tokens.peek().cloned() {
+    if let Some(Token::Token {
+        token_type, value, ..
+    }) = tokens.peek().cloned()
+    {
         match token_type {
             TokenType::AssignmentOperator => {
                 tokens.next();
-                let value = parse_additive_expression(tokens)?;
+                let assignment_value = parse_additive_expression(tokens)?;
 
                 Ok(Node::AssignmentExpression {
                     name: Box::new(left),
-                    value: Box::new(value),
+                    assignment_type: value.chars().nth(0).unwrap_or_else(|| '='),
+                    value: Box::new(assignment_value),
                 })
             }
             _ => Ok(left),

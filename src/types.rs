@@ -1,4 +1,7 @@
-use std::fmt::{Debug, Display};
+use std::{
+    fmt::{Debug, Display},
+    ops::{Add, Div, Mul, Rem, Sub},
+};
 
 #[derive(Clone, Debug)]
 pub enum RuntimeValue {
@@ -26,6 +29,7 @@ pub enum Node {
     },
     AssignmentExpression {
         name: Box<Node>,
+        assignment_type: char,
         value: Box<Node>,
     },
     VariableDeclaration {
@@ -202,14 +206,19 @@ impl Debug for Node {
                 }}",
                 left, operand, right
             ),
-            Node::AssignmentExpression { name, value } => format!(
+            Node::AssignmentExpression {
+                name,
+                assignment_type,
+                value,
+            } => format!(
                 "
                 {{
                     \"kind\": \"assignment expression\",
                     \"name\": {:?},
+                    \"assignment_type\": {}
                     \"value\": {:?}
                 }}",
-                name, value
+                name, assignment_type, value
             ),
             Node::VariableDeclaration { name, value } => format!(
                 "
@@ -241,5 +250,68 @@ impl Debug for Node {
             Node::Arguments(nodes) => format!("{:?}", nodes),
         };
         f.write_str(&value)
+    }
+}
+
+impl Add for RuntimeValue {
+    type Output = RuntimeValue;
+    fn add(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (RuntimeValue::Integer(l), RuntimeValue::Integer(r)) => RuntimeValue::Integer(l + r),
+            (RuntimeValue::Integer(l), RuntimeValue::Float(r)) => RuntimeValue::Float(l as f64 + r),
+            (RuntimeValue::Float(l), RuntimeValue::Integer(r)) => RuntimeValue::Float(l + r as f64),
+            (RuntimeValue::Float(l), RuntimeValue::Float(r)) => RuntimeValue::Float(l + r),
+            _ => todo!(),
+        }
+    }
+}
+
+impl Sub for RuntimeValue {
+    type Output = RuntimeValue;
+    fn sub(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (RuntimeValue::Integer(l), RuntimeValue::Integer(r)) => RuntimeValue::Integer(l - r),
+            (RuntimeValue::Integer(l), RuntimeValue::Float(r)) => RuntimeValue::Float(l as f64 - r),
+            (RuntimeValue::Float(l), RuntimeValue::Integer(r)) => RuntimeValue::Float(l - r as f64),
+            (RuntimeValue::Float(l), RuntimeValue::Float(r)) => RuntimeValue::Float(l - r),
+            _ => todo!(),
+        }
+    }
+}
+
+impl Mul for RuntimeValue {
+    type Output = RuntimeValue;
+    fn mul(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (RuntimeValue::Integer(l), RuntimeValue::Integer(r)) => RuntimeValue::Integer(l * r),
+            (RuntimeValue::Integer(l), RuntimeValue::Float(r)) => RuntimeValue::Float(l as f64 * r),
+            (RuntimeValue::Float(l), RuntimeValue::Integer(r)) => RuntimeValue::Float(l * r as f64),
+            (RuntimeValue::Float(l), RuntimeValue::Float(r)) => RuntimeValue::Float(l * r),
+            _ => todo!(),
+        }
+    }
+}
+
+impl Div for RuntimeValue {
+    type Output = RuntimeValue;
+    fn div(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (RuntimeValue::Integer(l), RuntimeValue::Integer(r)) => {
+                RuntimeValue::Float(l as f64 / r as f64)
+            }
+            (RuntimeValue::Integer(l), RuntimeValue::Float(r)) => RuntimeValue::Float(l as f64 / r),
+            (RuntimeValue::Float(l), RuntimeValue::Integer(r)) => RuntimeValue::Float(l / r as f64),
+            (RuntimeValue::Float(l), RuntimeValue::Float(r)) => RuntimeValue::Float(l / r),
+            _ => todo!(),
+        }
+    }
+}
+impl Rem for RuntimeValue {
+    type Output = RuntimeValue;
+    fn rem(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (RuntimeValue::Integer(l), RuntimeValue::Integer(r)) => RuntimeValue::Integer(l % r),
+            _ => todo!(),
+        }
     }
 }

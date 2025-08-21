@@ -38,10 +38,10 @@ pub fn assign(
     hashmap: &mut HashMap<String, RuntimeValue>,
     name: String,
     value: RuntimeValue,
-) -> Result<(), Error> {
+) -> Result<RuntimeValue, Error> {
     if hashmap.contains_key(&name) {
-        hashmap.insert(name, value);
-        Ok(())
+        hashmap.insert(name, value.clone());
+        Ok(value)
     } else {
         Err(Error::new(
             ErrorType::NameError,
