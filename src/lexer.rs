@@ -6,8 +6,10 @@ pub fn tokenize(source_code: &str) -> Result<Vec<Token>, Error> {
     let mut tokens = Vec::new();
     let mut number = String::new();
     let mut name = String::new();
+    let mut assignment = String::new();
     let mut parsing_number = false;
     let mut parsing_comment = false;
+    let mut parsing_assignment = false;
     let mut line = 1;
     let mut column = 1;
 
@@ -60,6 +62,16 @@ pub fn tokenize(source_code: &str) -> Result<Vec<Token>, Error> {
             }
         }
 
+        if parsing_assignment && character != '=' {
+            tokens.push(Token::Token {
+                token_type: TokenType::BinaryOperator,
+                value: String::from(assignment.clone()),
+                line,
+                column,
+            });
+            parsing_assignment = false;
+        }
+
         match character {
             ' ' | '\t' => continue,
             '#' => parsing_comment = true,
@@ -73,18 +85,19 @@ pub fn tokenize(source_code: &str) -> Result<Vec<Token>, Error> {
                 line,
                 column,
             }),
-            '=' => tokens.push(Token::Token {
-                token_type: TokenType::AssignmentOperator,
-                value: String::from(character),
-                line,
-                column,
-            }),
-            '+' | '-' | '*' | '/' | '%' | '^' => tokens.push(Token::Token {
-                token_type: TokenType::BinaryOperator,
-                value: String::from(character),
-                line,
-                column,
-            }),
+            '=' => {
+                tokens.push(Token::Token {
+                    token_type: TokenType::AssignmentOperator,
+                    value: String::from(assignment.clone() + &String::from(character)),
+                    line,
+                    column,
+                });
+                parsing_assignment = false;
+            }
+            '+' | '-' | '*' | '/' | '%' | '^' => {
+                parsing_assignment = true;
+                assignment = String::from(character);
+            }
             '(' => tokens.push(Token::Token {
                 token_type: TokenType::OpenParenthesis,
                 value: String::from(character),
@@ -155,7 +168,7 @@ pub fn tokenize(source_code: &str) -> Result<Vec<Token>, Error> {
             _ => {
                 return Err(Error::new(
                     ErrorType::SyntaxError,
-                    format!("Invalid character found: '{:?}'", character),
+                    format!("Invalid character found: '{}'", character),
                     line,
                     column,
                 ))

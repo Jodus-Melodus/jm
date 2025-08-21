@@ -3,17 +3,16 @@
                     "kind": "scope",
                     "body": [
                 {
-                    "kind": "function call",
+                    "kind": "assignment expression",
                     "name": 
                 {
                     "kind": "identifier",
-                    "value": "print"
+                    "value": "a"
                 },
-                    "arguments": [
+                    "value": 
                 {
                     "kind": "integer literal",
-                    "value": 34
-                }]
-
+                    "value": 2
+                }
                 }]
                 }

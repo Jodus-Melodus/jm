@@ -41,7 +41,7 @@ fn run_program(path: &str) -> Result<(), Error> {
     let tokens = lexer::tokenize(&source_code)?;
     let (ast, errors) = parser::generate_ast(tokens);
     for error in errors {
-        println!("{}", error);
+        eprintln!("{}", error);
     }
     write_file("ast.json", &format!("{:?}", ast)).unwrap();
     interpreter::evaluate(ast, &mut environment)?;
@@ -59,20 +59,20 @@ fn program_loop() -> Result<(), Error> {
             Ok(tokens) => {
                 let (ast, errors) = parser::generate_ast(tokens);
                 for error in errors {
-                    println!("{}", error);
+                    eprintln!("{}", error);
                 }
 
                 let result = interpreter::evaluate(ast, &mut environment);
                 match result {
                     Ok(_) => (),
                     Err(e) => {
-                        println!("{}", e);
+                        eprintln!("{}", e);
                         continue;
                     }
                 }
             }
             Err(e) => {
-                println!("{}", e);
+                eprintln!("{}", e);
                 continue;
             }
         }
